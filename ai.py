@@ -1,7 +1,7 @@
 import os
 import google.generativeai as genai
 
-API_KEY = "AIzaSyBmFCmv6kwMWBVjw-7RtHLnD3F2pxwhrgQ"
+API_KEY = "API_KEY"
 
 
 
