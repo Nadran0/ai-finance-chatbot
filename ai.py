@@ -18,8 +18,38 @@ def get_api_key():
 genai.configure(api_key=get_api_key())
 
 
-# 🤖 ===== USE STABLE MODEL =====
-model = genai.GenerativeModel("gemini-1.5-flash")
+# 🤖 ===== SAFE MODEL SELECTION =====
+def get_working_model():
+    try:
+        models = genai.list_models()
+
+        # Only models that support generateContent
+        valid_models = [
+            m.name for m in models
+            if "generateContent" in m.supported_generation_methods
+        ]
+
+        # Prefer safe models (avoid 3.x / pro quota issues)
+        preferred_keywords = ["flash", "pro"]
+
+        for keyword in preferred_keywords:
+            for m in valid_models:
+                if keyword in m.lower():
+                    print(f"✅ Using model: {m}")
+                    return genai.GenerativeModel(m)
+
+        # fallback
+        if valid_models:
+            print(f"⚠️ Using fallback model: {valid_models[0]}")
+            return genai.GenerativeModel(valid_models[0])
+
+        raise Exception("No valid models found")
+
+    except Exception as e:
+        raise Exception(f"❌ Model init failed: {str(e)}")
+
+
+model = get_working_model()
 
 
 # 🤖 ===== CHAT FUNCTION =====
@@ -28,25 +58,19 @@ def chat_with_ai(user_message, savings=0, expenses=None):
     if expenses is None:
         expenses = {}
 
-    # 🧠 MUCH BETTER PROMPT
     prompt = f"""
-You are a professional financial advisor helping a user manage money.
+You are a professional financial advisor.
 
-Your job:
-- Understand the user's intent clearly
-- Give practical, step-by-step financial advice
-- Personalize advice using user's data
-- Be clear, helpful, and slightly detailed
-- Use bullet points when useful
+Give clear, helpful, and practical advice.
 
-User Financial Data:
+User Data:
 Savings: ₹{savings}
 Expenses: {expenses}
 
 User Question:
 {user_message}
 
-Answer in a helpful and structured way.
+Answer clearly with steps if needed.
 """
 
     try:
@@ -54,18 +78,11 @@ Answer in a helpful and structured way.
             prompt,
             generation_config={
                 "temperature": 0.7,
-                "max_output_tokens": 600,
-                "top_p": 0.95
+                "max_output_tokens": 600
             }
         )
 
-        text = response.text.strip()
-
-        # fallback if empty/weak response
-        if not text or len(text) < 20:
-            return "⚠️ I couldn't generate a proper answer. Try rephrasing your question."
-
-        return text
+        return response.text.strip()
 
     except Exception as e:
         return f"❌ AI Error: {str(e)}"
