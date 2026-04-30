@@ -48,14 +48,14 @@ def calculate_goal(goal, months, savings):
     return monthly_required, gap
 
 
-# -------- DELETE EXPENSE --------
+
 def delete_expense(index):
     data = load_data()
     if 0 <= index < len(data["expenses"]):
         data["expenses"].pop(index)
         save_data(data)
 
-# -------- EDIT EXPENSE --------
+
 def edit_expense(index, name, amount, category):
     data = load_data()
     if 0 <= index < len(data["expenses"]):
@@ -66,7 +66,7 @@ def edit_expense(index, name, amount, category):
         }
         save_data(data)
 
-# -------- RESET INCOME --------
+
 def reset_income():
     data = load_data()
     data["income"] = 0

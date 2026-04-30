@@ -1,12 +1,12 @@
 import streamlit as st
 from logic import *
-from ai import chat_with_ai  # this should now be Gemini-only version
+from ai import chat_with_ai  
 
 st.set_page_config(page_title="AI Finance Bot", layout="wide")
 
 st.title("💰 AI Financial Chatbot App")
 
-# -------- INCOME --------
+
 st.sidebar.header("📥 Income")
 income_input = st.sidebar.number_input("Monthly Income", 0.0)
 
@@ -18,7 +18,7 @@ if st.sidebar.button("Reset Income"):
     reset_income()
     st.sidebar.success("Income Reset!")
 
-# -------- EXPENSES --------
+
 st.header("🧾 Add Expense")
 
 col1, col2, col3 = st.columns(3)
@@ -31,7 +31,7 @@ if st.button("Add Expense"):
     add_expense(name, amount, category)
     st.success("Expense Added!")
 
-# -------- SUMMARY --------
+
 st.header("📊 Financial Overview")
 
 income, total, savings, breakdown = get_summary()
@@ -48,7 +48,6 @@ if breakdown:
 else:
     st.info("No expenses added yet.")
 
-# -------- GOALS --------
 st.header("🎯 Financial Goal")
 
 goal = st.number_input("Goal Amount", 0.0)
@@ -64,7 +63,7 @@ if st.button("Generate Plan"):
     else:
         st.success("On track 🎯")
 
-# -------- MANAGE EXPENSES --------
+
 st.header("✏️ Manage Expenses")
 
 data = load_data()
@@ -103,14 +102,14 @@ if "edit_index" in st.session_state:
         st.success("Updated!")
         st.rerun()
 
-# -------- CHATBOT --------
+
 st.markdown("## 💬 AI Financial Assistant 🤖")
 st.caption("Ask anything about saving, investing, or buying smarter")
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# Display chat
+
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
         st.write(msg["content"])
@@ -118,23 +117,23 @@ for msg in st.session_state.messages:
 user_input = st.chat_input("Ask about your finances...")
 
 if user_input:
-    # Save user message
+   
     st.session_state.messages.append({"role": "user", "content": user_input})
 
     with st.chat_message("user"):
         st.write(user_input)
 
-    # Get latest financial data
+    
     income, total, savings, breakdown = get_summary()
 
-    # 🔥 Gemini-powered response (no manual logic)
+   
     response = chat_with_ai(
         user_message=user_input,
         savings=savings,
         expenses=breakdown
     )
 
-    # Save AI response
+    
     st.session_state.messages.append({"role": "assistant", "content": response})
 
     with st.chat_message("assistant"):

@@ -1,69 +1,45 @@
 import os
 import google.generativeai as genai
 
-API_KEY = "API_KEY"
 
-
+API_KEY = os.getenv("GEMINI_API_KEY")
 
 if not API_KEY:
-    raise ValueError("❌ Gemini API key not found. Please set it in ai.py or as environment variable.")
-
+    raise ValueError("❌ GEMINI_API_KEY not found. Set it in Streamlit Secrets.")
 
 genai.configure(api_key=API_KEY)
 
 
-try:
-    models = genai.list_models()
-
-    usable_model = None
-    for m in models:
-        if "generateContent" in m.supported_generation_methods:
-            usable_model = m.name
-            break
-
-    if not usable_model:
-        raise Exception("No supported Gemini model found.")
-
-    model = genai.GenerativeModel(usable_model)
-
-except Exception as e:
-    raise Exception(f"❌ Model initialization failed: {str(e)}")
-
+model = genai.GenerativeModel("gemini-1.5-flash")
 
 
 def chat_with_ai(user_message, savings=0, expenses=None):
-    """
-    Gemini-powered financial chatbot
-    """
 
     if expenses is None:
         expenses = {}
 
-   
-    context = f"""
-You are a smart financial assistant.
+    prompt = f"""
+You are a financial assistant.
 
-User Financial Data:
-- Savings: ₹{savings}
-- Expense Breakdown: {expenses}
+Give detailed, helpful advice.
 
-Your job:
-- Give practical financial advice
-- Suggest savings improvements
-- Help manage money better
-- Keep answers short, clear, and actionable
+User Data:
+Savings: ₹{savings}
+Expenses: {expenses}
+
+User: {user_message}
 """
 
     try:
         response = model.generate_content(
-            context + "\nUser: " + user_message
+            prompt,
+            generation_config={
+                "temperature": 0.7,
+                "max_output_tokens": 500
+            }
         )
 
-        
-        if hasattr(response, "text"):
-            return response.text.strip()
-        else:
-            return str(response)
+        return response.text.strip()
 
     except Exception as e:
-        return f"❌ AI Error: {str(e)}"
+        return f"❌ API Error: {str(e)}"
